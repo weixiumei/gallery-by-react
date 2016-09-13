@@ -5,8 +5,8 @@ import React from 'react';
 
 // let yeomanImage = require('../images/yeoman.png');
 //获取图片相关数据
-let imageDatas = require('../data/imageDatas.json');
-
+let imageDatas = require('json!../data/imageDatas.json');
+ 
 //利用自执行函数，将图片名信息转成图片URL路径信息。
 function genImageURL(imageDataArr){
   for(var i = 0; i < imageDataArr.length; i++ ){
@@ -16,31 +16,35 @@ function genImageURL(imageDataArr){
   }
   return imageDataArr;
 }
+
 imageDatas = genImageURL(imageDatas);
 
-var ImgFigure = React.createClass({
+//单单幅画的reactComponent
+let ImgFigure = React.createClass({
   render: function(){
+
     return (
-        <figure>
-          <img src={this.props.data.imageURL}
-            alt={this.props.data.title} />
-          <figcaption>
-            <h2>{this.props.data.title}</h2>
-          </figcaption>
-        </figure>
-      )
+          <figure>
+              <img src={this.props.data.imageURL} 
+              alt={this.props.data.title}/>
+              <figcaption>
+                <h2>{this.props.data.title}</h2>
+              </figcaption>
+          </figure>
+          )
   }
-});
+})
 
 class AppComponent extends React.Component {
   render() {
 
-    var controllerUnits = [],
+    var controllerUnits =[],
         imgFigures = [];
 
-    // imageDatas.forEach(function(value){
-    //   imgFigures.push(<ImgFigure data={value}/>)
-    // });
+    imageDatas.forEach(function(value){
+      imgFigures.push(<ImgFigure data={value}/>);
+    });
+
     return (
         <section className="stage">
           <section className="img-sec">
