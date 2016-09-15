@@ -11,7 +11,7 @@ let imageDatas = require('json!../data/imageDatas.json');
 function genImageURL(imageDataArr){
   for(var i = 0; i < imageDataArr.length; i++ ){
     var singleImageData = imageDataArr[i];
-    singleImageData.imageURL = require('../images' + singleImageData.fileName);
+    singleImageData.imageURL = require('../images/' + singleImageData.fileName);
     imageDataArr[i] = singleImageData;
   }
   return imageDataArr;
@@ -24,6 +24,7 @@ let ImgFigure = React.createClass({
   render: function(){
 
     return (
+          //自包含内容==单独拿出来放到哪里也是有意义的。
           <figure>
               <img src={this.props.data.imageURL} 
               alt={this.props.data.title}/>
