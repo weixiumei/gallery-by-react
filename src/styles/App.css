@@ -3,7 +3,7 @@ html, body{
   height: 100%;
   background-color: #222;
 }
-newtriks/generator-react-webpack
+
 .content{
   width: 100%;
   height: 100%;
@@ -26,13 +26,37 @@ newtriks/generator-react-webpack
   overflow: hidden;
 
   background-color: #ddd;
+
 }
+
+.img-figure{
+      position: absolute;
+      width: 320px;
+      height: 360px;
+      margin: 0;
+      padding: 40px;
+
+      background-color: #fff;
+
+      box-sizing:border-box;
+     }
+
+figcaption{
+    text-align: center;
+
+    
+  }
+.img-title{
+      margin: 20px 0 0 0;
+      color: #a7a0a2;
+      font-size: 16px;
+    }
 /* image --end */
 
 
 /* controller --start */
 .controller-nav{
-  position: relative;
+  position: absolute;
   left: 0;
   bottom: 30px;
   z-index: 101;
