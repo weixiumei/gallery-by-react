@@ -5,6 +5,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 //以下的带*为解决问题
+//state变化，视图会重新渲染。
 
 //获取图片相关数据
 let imageDatas = require('json!../data/imageDatas.json');
@@ -20,10 +21,26 @@ function genImageURL(imageDataArr){
 }
 imageDatas = genImageURL(imageDatas);
 
+/*
+ *获取区间内的随机值
+ */
+function getRangeRandom(low, high){
+  //[low, )
+  return Math.ceil(low + Math.random()*(high - low));
+
+}
 var ImgFigure = React.createClass({
   render: function(){
+
+    var styleObj = {};
+
+    //如果props属性中指定了这张图片的位置，则使用
+    if(this.props.arrange.pos){
+      styleObj = this.props.arrange.pos;
+    }
+
     return (
-        <figure className="img-figure">
+        <figure className="img-figure" style={styleObj}>
           <img src={this.props.data.imageURL} alt={this.props.data.title} />
           <figcaption>
             <h2 className="img-title">{this.props.data.title}</h2>
@@ -55,6 +72,16 @@ class AppComponent extends React.Component {
         topY:[0,0]
       }
     }
+    this.state = { 
+      imgsArrangeArr: [
+        {
+          //css object style
+          pos:{
+            left:'0',
+            top:'0'
+            }
+          }] 
+        };
   }
   
   //在取值范围内排布这些图片。 
@@ -63,22 +90,72 @@ class AppComponent extends React.Component {
    *@param 指定居中排布哪个图片
    */
   rearrange(centerIndex){
+    var imgsArrangeArr = this.state.imgsArrangeArr,
+        Constant = this.Constant,
+        centerPos = Constant.centerPos,
+        hPosRange = Constant.hPosRange,
+        vPosRange = Constant.vPosRange,
+        hPosRangeLeftSecX = hPosRange.leftSecX,
+        hPosRangeRightSecX = hPosRange.rightSecX,
+        hPosRangeY = hPosRange.y,
+        vPosRangeTopY = vPosRange.topY,
+        vPosRangeX = vPosRange.x,
 
-  }
+        //用来存储上侧区域的图片的状态信息。
+        imgsArrangeTopArr = [],
+        //取一个或不取[0,2)
+        topImgNum = Math.ceil(Math.random() * 2),
+        //用来标记我们用来布局在上侧区域的这张图片是从数组对象的哪个位置拿出来的。
+        topImgSpliceIndex = 0,
 
-  getInitialStage(){
-    return{
-      //存储多个图片的状态
-      imgsArrangeArr:[
-        /*{
-          pos:{
-            left:'0',
-            top:'0'
+        //居中图片的状态信息(从centerIndex这个位置剔除掉1个，拿到的就是centerIndex这个位置所表示的图片信息，就是中心图片的状态)
+        imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1)
+
+        //首先居中 centerIndex 的图片
+        imgsArrangeCenterArr[0].pos = centerPos;
+
+        //取出要布局上侧的图片的状态信息
+        topImgSpliceIndex = Math.ceil(Math.random() * imgsArrangeArr.length - topImgNum);
+        imgsArrangeTopArr = imgsArrangeArr.splice(topImgSpliceIndex, topImgNum);
+
+        //布局位于上侧的图片
+        imgsArrangeTopArr.forEach(function(value, index){
+          imgsArrangeTopArr[index].pos = {
+            top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
+            left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
           }
-        }*/
-      ]
-    }
+        });
 
+        //布局左右两侧的图片
+        for(var i = 0, j = imgsArrangeArr.length, k = j / 2; i < j; i++){
+          //左区域或右区域x的取值范围
+          var hPosRangeLORX = null;
+
+          //前半部分布局左边，后半部分布局右边
+          if(i < k){
+            hPosRangeLORX = hPosRangeLeftSecX;
+          }else{
+            hPosRangeLORX = hPosRangeRightSecX;
+          }
+
+          imgsArrangeArr[i].pos = {
+            top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
+            left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
+          }
+        }
+
+        //上侧图片塞回去
+        if(imgsArrangeTopArr && imgsArrangeTopArr[0]){
+          imgsArrangeArr.splice(topImgSpliceIndex, 0, imgsArrangeTopArr[0]);
+        }
+
+        //中心区域图片塞回去
+        imgsArrangeArr.splice(centerIndex, 0, imgsArrangeCenterArr[0]);
+
+        //设置state，触发component重新渲染
+        this.setState({
+          imgsArrangeArr: imgsArrangeArr
+        });
   }
 
   //组件加载以后，为每张图片计算其位置的范围。
@@ -124,7 +201,7 @@ class AppComponent extends React.Component {
     this.Constant.vPosRange.x[0] = halfStageW - imgW;
     this.Constant.vPosRange.x[1] = halfStageW;
     this.Constant.vPosRange.topY[0] = -halfImgH;
-    this.Constant.vPosRange.topY[1] = halfStageH - halfImgH*3;
+    this.Constant.vPosRange.topY[1] = halfStageH - halfImgH * 3;
     
     this.rearrange(0);
 
@@ -138,6 +215,7 @@ class AppComponent extends React.Component {
     imageDatas.forEach(function(value, index){
 
       if(!this.state.imgsArrangeArr[index]){
+        
         this.state.imgsArrangeArr[index] = {
           pos:{
             left:0,
@@ -145,8 +223,8 @@ class AppComponent extends React.Component {
           }
         }
       }
-
-      imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName} data={value}/>)
+      imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName} 
+        data={value} arrange={this.state.imgsArrangeArr[index]}/>)
     }.bind(this));//bind(this):把reactComponent对象传递到function中。这样可以调用this。
     return (
         <section className="stage" ref="stage">
