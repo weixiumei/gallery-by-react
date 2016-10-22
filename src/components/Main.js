@@ -29,14 +29,28 @@ function getRangeRandom(low, high){
   return Math.ceil(low + Math.random()*(high - low));
 
 }
+
+/*
+ *获取0~30区间内的正负随机值
+ */
+function get30DegRandom(){
+  return (Math.random() > 0.5 ? '-' : '') + Math.ceil(Math.random() * 30)
+}
+
 var ImgFigure = React.createClass({
   render: function(){
-
+    //style设定
     var styleObj = {};
 
     //如果props属性中指定了这张图片的位置，则使用
     if(this.props.arrange.pos){
       styleObj = this.props.arrange.pos;
+    }
+    //如果props属性中指定了这张图片的旋转角度，则使用
+    if(this.props.arrange.ratate){
+      (['Moz','ms','Webkit','']).forEach(function(value){
+          styleObj[value + 'Transform'] = 'rotate(' + this.props.arrange.ratate + 'deg)';
+      }.bind(this));
     }
 
     return (
@@ -72,19 +86,17 @@ class AppComponent extends React.Component {
         topY:[0,0]
       }
     }
-    this.state = { 
-      imgsArrangeArr: [
+    this.state = {imgsArrangeArr: [
         {
           //css object style
           pos:{
             left:'0',
             top:'0'
-            }
-          }] 
-        };
+            },
+          ratate:0   //旋转角度
+          }]};
   }
   
-  //在取值范围内排布这些图片。 
   /*
    *重新布局所有图片
    *@param 指定居中排布哪个图片
@@ -113,6 +125,8 @@ class AppComponent extends React.Component {
 
         //首先居中 centerIndex 的图片
         imgsArrangeCenterArr[0].pos = centerPos;
+        //居中的 centerIndex 的图片不需要旋转。
+        imgsArrangeCenterArr[0].ratate = 0;
 
         //取出要布局上侧的图片的状态信息
         topImgSpliceIndex = Math.ceil(Math.random() * imgsArrangeArr.length - topImgNum);
@@ -120,10 +134,13 @@ class AppComponent extends React.Component {
 
         //布局位于上侧的图片
         imgsArrangeTopArr.forEach(function(value, index){
-          imgsArrangeTopArr[index].pos = {
-            top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
-            left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
-          }
+          imgsArrangeTopArr[index] = {
+            pos:{
+              top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
+              left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
+            },
+            ratate:get30DegRandom()
+          };
         });
 
         //布局左右两侧的图片
@@ -138,10 +155,13 @@ class AppComponent extends React.Component {
             hPosRangeLORX = hPosRangeRightSecX;
           }
 
-          imgsArrangeArr[i].pos = {
-            top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
-            left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
-          }
+          imgsArrangeArr[i] = {
+            pos:{
+              top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
+              left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
+            },
+            ratate:get30DegRandom()
+          };
         }
 
         //上侧图片塞回去
@@ -161,10 +181,7 @@ class AppComponent extends React.Component {
   //组件加载以后，为每张图片计算其位置的范围。
   //*新版react不是componentDidMount: function()..结束方法后没有逗号*
   componentDidMount() {
-
-    //scrollWidth：对象的实际内容的宽度，不包边线宽度，会随对象中内容超过可视区后而变大。 
-    //clientWidth：对象内容的可视区的宽度，不包滚动条等边线，会随对象显示大小的变化而改变。 
-    //offsetWidth：对象整体的实际宽度，包滚动条等边线，会随对象显示大小的变化而改变。
+    //scrollWidth：对象的实际内容的宽度，不包边线宽度，会随对象中内容超过可视区后而变大。clientWidth：对象内容的可视区的宽度，不包滚动条等边线，会随对象显示大小的变化而改变。offsetWidth：对象整体的实际宽度，包滚动条等边线，会随对象显示大小的变化而改变。
 
     //首先拿到舞台的大小
     //*react 是新版 React.findDOMNode==>ReactDOM.findDOMNode(上面得import ReactDOM from 'react-dom';)*
@@ -208,23 +225,20 @@ class AppComponent extends React.Component {
   }//*没有','*
 
   render(){
-
     var controllerUnits = [],
         imgFigures = [];
 
     imageDatas.forEach(function(value, index){
-
       if(!this.state.imgsArrangeArr[index]){
-        
         this.state.imgsArrangeArr[index] = {
           pos:{
             left:0,
             top:0
-          }
+          },
+          ratate:0
         }
       }
-      imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName} 
-        data={value} arrange={this.state.imgsArrangeArr[index]}/>)
+      imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName} data={value} arrange={this.state.imgsArrangeArr[index]}/>)
     }.bind(this));//bind(this):把reactComponent对象传递到function中。这样可以调用this。
     return (
         <section className="stage" ref="stage">
@@ -243,3 +257,6 @@ AppComponent.defaultProps = {
 };
 
 export default AppComponent;
+
+
+//init,render,componentDidMount,render
