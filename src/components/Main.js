@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 
 //以下的带*为解决问题
 //state变化，视图会重新渲染。
+//闭包：就是能够读取其他函数内部变量的函数,也就是定义在一个函数内部的函数,所以闭包就是把函数内部和函数内部连接起来的一个桥梁。 
 
 //获取图片相关数据
 let imageDatas = require('json!../data/imageDatas.json');
@@ -38,6 +39,16 @@ function get30DegRandom(){
 }
 
 var ImgFigure = React.createClass({
+
+  /*
+   *imageFigure的点击处理函数
+   */
+  handleClick(e){
+    this.props.inverse();
+    e.stopPropagation();
+    e.preventDefault();
+  },
+
   render: function(){
     //style设定
     var styleObj = {};
@@ -46,18 +57,27 @@ var ImgFigure = React.createClass({
     if(this.props.arrange.pos){
       styleObj = this.props.arrange.pos;
     }
+
     //如果props属性中指定了这张图片的旋转角度，则使用
-    if(this.props.arrange.ratate){
+    if(this.props.arrange.rotate){
       (['Moz','ms','Webkit','']).forEach(function(value){
-          styleObj[value + 'Transform'] = 'rotate(' + this.props.arrange.ratate + 'deg)';
+          styleObj[value + 'Transform'] = 'rotate(' + this.props.arrange.rotate + 'deg)';
       }.bind(this));
     }
 
+    var imgFigureClassName = "img-figure";
+    imgFigureClassName += this.props.arrange.isInverse ? ' is-inverse ' : '';
+
     return (
-        <figure className="img-figure" style={styleObj}>
+        <figure className={imgFigureClassName} style={styleObj} onClick={this.handleClick}>
           <img src={this.props.data.imageURL} alt={this.props.data.title} />
           <figcaption>
             <h2 className="img-title">{this.props.data.title}</h2>
+            <div className="img-back" onClick={this.handleClick}>
+              <p>
+                  {this.props.data.desc}
+              </p>
+            </div>
           </figcaption>
         </figure>
       )
@@ -93,10 +113,29 @@ class AppComponent extends React.Component {
             left:'0',
             top:'0'
             },
-          ratate:0   //旋转角度
-          }]};
+          rotate:0,   //旋转角度
+          isInverse:false  //正反面 默认正面
+          }]
+        };
   }
   
+  /*
+   * 翻转图片
+   * @param index 输入当前被执行的inverse操作的图片信息数组的index值
+   * @return {function} 这是一个闭包函数， 其内return一个真正待被执行的函数
+   */
+   inverse(index){
+    return function(){
+      var imgsArrangeArr = this.state.imgsArrangeArr;
+      imgsArrangeArr[index].isInverse = !imgsArrangeArr[index].isInverse;
+      
+      this.setState({
+        imgsArrangeArr:imgsArrangeArr
+      })
+
+    }.bind(this);
+   }
+
   /*
    *重新布局所有图片
    *@param 指定居中排布哪个图片
@@ -116,7 +155,7 @@ class AppComponent extends React.Component {
         //用来存储上侧区域的图片的状态信息。
         imgsArrangeTopArr = [],
         //取一个或不取[0,2)
-        topImgNum = Math.ceil(Math.random() * 2),
+        topImgNum = Math.ceil(Math.random() * 1),
         //用来标记我们用来布局在上侧区域的这张图片是从数组对象的哪个位置拿出来的。
         topImgSpliceIndex = 0,
 
@@ -126,7 +165,7 @@ class AppComponent extends React.Component {
         //首先居中 centerIndex 的图片
         imgsArrangeCenterArr[0].pos = centerPos;
         //居中的 centerIndex 的图片不需要旋转。
-        imgsArrangeCenterArr[0].ratate = 0;
+        imgsArrangeCenterArr[0].rotate = 0;
 
         //取出要布局上侧的图片的状态信息
         topImgSpliceIndex = Math.ceil(Math.random() * imgsArrangeArr.length - topImgNum);
@@ -139,7 +178,7 @@ class AppComponent extends React.Component {
               top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
               left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
             },
-            ratate:get30DegRandom()
+            rotate:get30DegRandom()
           };
         });
 
@@ -160,7 +199,7 @@ class AppComponent extends React.Component {
               top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
               left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
             },
-            ratate:get30DegRandom()
+            rotate:get30DegRandom()
           };
         }
 
@@ -235,10 +274,12 @@ class AppComponent extends React.Component {
             left:0,
             top:0
           },
-          ratate:0
+          rotate:0,
+          isInverse:false
         }
       }
-      imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName} data={value} arrange={this.state.imgsArrangeArr[index]}/>)
+      imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName}
+        data={value} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)}/>)
     }.bind(this));//bind(this):把reactComponent对象传递到function中。这样可以调用this。
     return (
         <section className="stage" ref="stage">
