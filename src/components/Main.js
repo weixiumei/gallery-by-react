@@ -44,7 +44,11 @@ var ImgFigure = React.createClass({
    *imageFigure的点击处理函数
    */
   handleClick(e){
-    this.props.inverse();
+    if(this.props.arrange.isCenter){
+      this.props.inverse();
+    }else{
+      this.props.center();
+    }
     e.stopPropagation();
     e.preventDefault();
   },
@@ -65,8 +69,12 @@ var ImgFigure = React.createClass({
       }.bind(this));
     }
 
+    if(this.props.arrange.isCenter){
+      styleObj.zIndex = 11;//中心图片不被盖住。
+    }
+
     var imgFigureClassName = "img-figure";
-    imgFigureClassName += this.props.arrange.isInverse ? ' is-inverse ' : '';
+    imgFigureClassName += this.props.arrange.isInverse ? ' is-inverse' : '';
 
     return (
         <figure className={imgFigureClassName} style={styleObj} onClick={this.handleClick}>
@@ -114,7 +122,8 @@ class AppComponent extends React.Component {
             top:'0'
             },
           rotate:0,   //旋转角度
-          isInverse:false  //正反面 默认正面
+          isInverse:false,  //正反面 默认正面
+          isCenter:false   //图片是否居中 默认不居中
           }]
         };
   }
@@ -162,10 +171,12 @@ class AppComponent extends React.Component {
         //居中图片的状态信息(从centerIndex这个位置剔除掉1个，拿到的就是centerIndex这个位置所表示的图片信息，就是中心图片的状态)
         imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1)
 
-        //首先居中 centerIndex 的图片
-        imgsArrangeCenterArr[0].pos = centerPos;
-        //居中的 centerIndex 的图片不需要旋转。
-        imgsArrangeCenterArr[0].rotate = 0;
+        //首先居中 centerIndex 的图片, 居中的 centerIndex 的图片不需要旋转。
+        imgsArrangeCenterArr[0] = {
+          pos:centerPos,
+          rotate:0,
+          isCenter:true
+        }
 
         //取出要布局上侧的图片的状态信息
         topImgSpliceIndex = Math.ceil(Math.random() * imgsArrangeArr.length - topImgNum);
@@ -178,7 +189,8 @@ class AppComponent extends React.Component {
               top: getRangeRandom(vPosRangeTopY[0], vPosRangeTopY[1]),
               left: getRangeRandom(vPosRangeX[0], vPosRangeX[1])
             },
-            rotate:get30DegRandom()
+            rotate:get30DegRandom(),
+            isCenter:false
           };
         });
 
@@ -199,7 +211,8 @@ class AppComponent extends React.Component {
               top: getRangeRandom(hPosRangeY[0], hPosRangeY[1]),
               left: getRangeRandom(hPosRangeLORX[0], hPosRangeLORX[1])
             },
-            rotate:get30DegRandom()
+            rotate:get30DegRandom(),
+            isCenter:false
           };
         }
 
@@ -216,6 +229,16 @@ class AppComponent extends React.Component {
           imgsArrangeArr: imgsArrangeArr
         });
   }
+
+  /*
+   * 利用rearrange函数，居中对应index的图片。
+   * @param index，需要被居中的图片对应的图片信息数组的index值。
+   */
+   center(index){
+    return function(){
+      this.rearrange(index);
+    }.bind(this);
+   }
 
   //组件加载以后，为每张图片计算其位置的范围。
   //*新版react不是componentDidMount: function()..结束方法后没有逗号*
@@ -275,11 +298,13 @@ class AppComponent extends React.Component {
             top:0
           },
           rotate:0,
-          isInverse:false
+          isInverse:false,
+          isCenter:false
         }
       }
       imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName}
-        data={value} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)}/>)
+        data={value} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)} 
+        center={this.center(index)}/>) //inverse,center是闭包。
     }.bind(this));//bind(this):把reactComponent对象传递到function中。这样可以调用this。
     return (
         <section className="stage" ref="stage">
