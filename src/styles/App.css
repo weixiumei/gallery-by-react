@@ -1,3 +1,13 @@
+@font-face{
+  /*字体声明*/
+  /*字体适用的浏览器: eot:ie, woff:chrome/firefox, ttf:chrome/firefox/opera/Safari/ios4.2+, svg:ios4.1-;*/
+  font-family: "icons-turn-arrow";
+  src: /*url("../fonts/icons/turn-arrow.eot") format("embedded-opentype"),*/
+  url("../fonts/icons/turn-arrow.woff") format("woff"),
+  /*url("../fonts/icons/turn-arrow.ttf") format("truetype"),*/
+  url("../fonts/icons/turn-arrow.svg") format("svg");
+}
+
 html, body{
   width: 100%;
   height: 100%;
@@ -96,6 +106,52 @@ figcaption{
   width: 100%;
 
   text-align: center;
+}
+.controller-unit{
+  /*行内元素，可设置宽高，还可以多个控制元素放在同一行*/
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  margin: 0 5px;
+  text-align: center;
+  /*中部对齐*/
+  vertical-align: middle;
+  /*手形*/
+  cursor: pointer;
+
+  background-color: #aaa;
+  /*弧度*/
+  border-radius: 50%;
+  /*缩放倍数*/
+  transform: scale(.5);
+  transition: transform .6s ease-in-out, left .6s ease-in-out, top .6s ease-in-out;
+}
+.is-center{
+  background-color: #888;
+  transform: scale(1);
+  /*箭头使用Icon font 技术，用字体文件取代图片文件来展示图标 
+  好处：1. Icon font 体积比图片小的多，
+        2. Icon font 是矢量图形，拉伸不变形，颜色可以自行更换
+        3. 支持css3属性对文件的效果修饰*/
+  /*国内资源：阿里巴巴的矢量图标库www.iconfont.cn*/
+}
+.is-center::after{
+  color: #fff;
+  font-family: "icons-turn-arrow";
+
+  /*垂直居中，设置line-height和父类一样高*/
+  line-height: 30px;
+
+  /*翻转箭头的Unicode码*/
+  content: "\e600";
+
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+.is-inverse-unit{
+  background-color: #888;
+
+  transform:rotateY(180deg);
 }
 
 /* controller --end*/

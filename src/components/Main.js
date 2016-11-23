@@ -92,6 +92,29 @@ var ImgFigure = React.createClass({
   }
 });
 
+var ControllerUnit = React.createClass({
+
+    handleClick: function(e){
+      if(this.props.arrange.isCenter){
+        this.props.inverse();
+      }else{
+        this.props.center();
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    render: function(){
+      var ontrollerUnitClassName = "controller-unit";
+      ontrollerUnitClassName += this.props.arrange.isCenter ? " is-center":"";
+      ontrollerUnitClassName += this.props.arrange.isInverse ? " is-inverse-unit":"";
+      
+      return (
+        <span className={ontrollerUnitClassName} onClick={this.handleClick}></span>
+        );
+    }
+});
+
+
 class AppComponent extends React.Component {
   
   constructor(props) {
@@ -305,7 +328,11 @@ class AppComponent extends React.Component {
       imgFigures.push(<ImgFigure ref={'imgFigure' + index} key={value.fileName}
         data={value} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)} 
         center={this.center(index)}/>) //inverse,center是闭包。
+
+      controllerUnits.push(<ControllerUnit key={value.fileName} arrange={this.state.imgsArrangeArr[index]}
+       inverse={this.inverse(index)} center={this.center(index)}/>);
     }.bind(this));//bind(this):把reactComponent对象传递到function中。这样可以调用this。
+
     return (
         <section className="stage" ref="stage">
           <section className="img-sec">
